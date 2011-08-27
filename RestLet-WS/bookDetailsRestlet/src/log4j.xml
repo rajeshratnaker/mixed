@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{MM/dd HH:mm:ss} %-5p [%c{1}] (%t) %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="LOG" class="org.apache.log4j.RollingFileAppender">
+		<param name="File" value="target/bookDetails.log" />
+		<param name="MaxBackupIndex" value="10" />
+		<param name="MaxFileSize" value="1MB" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{MM/dd HH:mm:ss} %-5p [%c{1}] (%t) %m%n" />
+		</layout>
+	</appender>
+	
+		
+	<logger name="com.rajesh.books.service" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="LOG" />
+	</logger>
+	
+	<logger name="com.rajesh.books.rest" additivity="false">
+		<level value="DEBUG" />
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="LOG" />
+	</logger>
+	
+	<root>
+		<level value="DEBUG" />
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="LOG" />
+	</root>
+
+</log4j:configuration>
+

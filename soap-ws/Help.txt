@@ -1,0 +1,104 @@
+
+Writing 1st SOAP-WS web-service based sample application. I assume reader has knowledge of "maven"(maven.apache.org) as maven makes our life easier for development
+
+Step1:
+mvn archetype:create -DarchetypeGroupId=org.springframework.ws  -DarchetypeArtifactId=spring-ws-archetype   -DarchetypeVersion=1.5.9   -DgroupId=com.rajesh.books   -DartifactId=bookDetails
+
+This is to create skeleton of the web service based project .
+This will create initial files like "bookDetails/pom.xml" and "src/main/webapps/WEB-INF/|->spring-ws-servlet.xml" 
+											|->web.xml
+This also downloads/updates necessary dependent files in maven repository.
+
+Step2:
+Import the above maven project in eclipse as Maven Project.
+Alterntively use mvn eclise:eclise if m2eclipse plugin is not configured in eclipse.
+
+Important:Check the eclipse project setting to compile the application with 1.6 compiler compliance. 
+
+
+Step3:
+Add Source :src/main/java
+Add package: com.rajesh.books.service And com.rajesh.books.ws
+Add Classes : BookDetailsService and BooksEndpoint under com.rajesh.books.service and com.rajesh.books.ws packages respectively.
+
+Step4:
+Code contents:
+
+Step5:
+Configure payload end point beans in spring-ws-servlet.xml as follows:
+
+<bean class="org.springframework.ws.server.endpoint.mapping.PayloadRootQNameEndpointMapping">
+    <property name="mappings">
+        <props>
+            <prop key="{http://rajesh.com/books/schemas}BookDetailsRequest">booksEndpoint</prop>
+        </props>
+    </property>
+    <property name="interceptors">
+        <bean class="org.springframework.ws.server.endpoint.interceptor.PayloadLoggingInterceptor"/>
+    </property>
+</bean>
+
+Notice 'booksEndpoint' in the above xml file. This bean can be defined in any where. Lets define it in the same file as follows:
+
+<bean id="booksEndpoint" class="com.rajesh.books.ws.BooksEndpoint">
+        <constructor-arg ref="bookDetailsService"/>
+</bean>
+<bean id="bookDetailsService" class="com.rajesh.books.service.BookDetailsService"/>
+
+Step5:
+Defining WSDL. SOAP-WS provides API's which generates WSDL at runtime. Code as follows which can be kept in the same spring-ws-servlet.xml file:
+
+<!--  WSDL details --> 
+<bean id="booksDetails" class="org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition">   
+    <property name="schema" ref="schema"/>                                               
+    <property name="portTypeName" value="BookDetails"/>                                
+    <property name="locationUri" value="/bookDetailsService/"/>                              
+    <property name="targetNamespace" value="http://rajesh.com/books/definitions"/>       
+</bean>
+<bean id="schema" class="org.springframework.xml.xsd.SimpleXsdSchema">                   
+    <property name="xsd" value="/WEB-INF/books.xsd"/>
+</bean>
+
+Step6:
+Now lets define XSD for web service request message ( Actually this is defined 1st in ideal scenario :)
+
+FileName: books.xsd (Under src/main/webapps/WEB-INF)
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:books="http://rajesh.com/books/schemas"
+        elementFormDefault="qualified"
+        targetNamespace="http://rajesh.com/books/schemas">
+    <xs:element name="BookDetailsRequest">
+	    <xs:complexType>
+		    <xs:sequence>
+		           <xs:element name="book" type="xs:string"/>
+		    </xs:sequence>
+	    </xs:complexType>                       
+    </xs:element>
+</xs:schema>
+
+Testing WebService:
+Using SoapUI
+
+http://localhost:8080/bookDetails/booksDetails.wsdl 
+
+http://localhost:8080/holidayService/holiday.wsdl
+
+
+Edit Endpoint for interface:
+http://localhost:8080/bookDetails/
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://rajesh.com/books/schemas">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <sch:BookDetailsRequest>
+         <sch:book>C++</sch:book>
+      </sch:BookDetailsRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+   <SOAP-ENV:Header/>
+   <SOAP-ENV:Body>
+      <books:Result xmlns:books="http://rajesh.com/books/schemas">Book Details Response</books:Result>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

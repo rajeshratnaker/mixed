@@ -1,0 +1,6 @@
+Step1:
+mvn archetype:create -DarchetypeGroupId=org.springframework.ws  -DarchetypeArtifactId=spring-ws-archetype   -DarchetypeVersion=1.5.9   -DgroupId=com.mycompany.hr   -DartifactId=holidayService
+
+
+Make Sure: you are compiling java1.6
+

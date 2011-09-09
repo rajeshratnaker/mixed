@@ -5,3 +5,7 @@ public static void main(String[] args) throws Exception {
     }
 
 //
+
+  EntryProcessor removeAllProcessor = new ConditionalRemove(AlwaysFilter.INSTANCE);
+            this.cache.invokeAll(new AllFilter(this.evictionPolicy.getFilters()), removeAllProcessor);
+//

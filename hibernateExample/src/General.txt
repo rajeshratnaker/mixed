@@ -1,1 +1,7 @@
 General note:
+//Junit
+public static void main(String[] args) throws Exception {
+        new SpringJUnit4ClassRunner(xxTest.class).run(new RunNotifier());
+    }
+
+//

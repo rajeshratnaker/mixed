@@ -9,3 +9,26 @@ public static void main(String[] args) throws Exception {
   EntryProcessor removeAllProcessor = new ConditionalRemove(AlwaysFilter.INSTANCE);
             this.cache.invokeAll(new AllFilter(this.evictionPolicy.getFilters()), removeAllProcessor);
 //
+
+-------------------------
+1) git stash, cause you can't rebase otherwise
+2) git rebase -i <sha1>
+3) git stash apply, cause you need the change
+4) git commit --amend
+5) git rebase --continue
+
+1)git fetch pankaj 
+2)git checkout -b abc-comp abc/master 
+
+-----
+
+git log
+git checkout -b name 3487f3
+git branch
+
+-----
+ToStringBuilder.reflectionToString(this, ToStringStyle.SIMPLE_STYLE);
+new HashCodeBuilder().append(.).toHashCode()
+new EqualsBuilder().append(this.a, other.a).isEquals()
+
+----

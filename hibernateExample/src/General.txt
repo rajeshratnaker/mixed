@@ -32,3 +32,31 @@ new HashCodeBuilder().append(.).toHashCode()
 new EqualsBuilder().append(this.a, other.a).isEquals()
 
 ----
+
+@Controller
+public class RequestController {
+
+    @Autowired(required = true)
+    private xyzRequestService requestService;
+
+    @Autowired(required = true)
+    @Qualifier("rDao")
+    private RequestDao requestDao;
+
+    private final Log log = LogFactory.getLog(this.getClass());
+
+    @RequestMapping(method = RequestMethod.GET,
+            value = "/xyz/risk/ec/{requestId}/{mreSeq}/{expSeq}/{mId}/{pId}/{startNodeUnitId}/{hierarchyId}/{hierarchyCobDate}/{eventId}")
+    @ResponseBody
+    public String processECxyzRequest(@PathVariable Long requestId,
+            								   @PathVariable Long mreSeq,
+    									   @PathVariable Long expSeq,
+                                           @PathVariable Long mId,
+                                           @PathVariable Long pId,
+                                           @PathVariable Long startNodeUnitId,
+                                           @PathVariable Long hierarchyId,
+                                           @PathVariable @DateTimeFormat(pattern = "dd-MMM-yyyy")
+                                           Date hierarchyCobDate,
+                                           @PathVariable Integer eventId) {
+-----
+

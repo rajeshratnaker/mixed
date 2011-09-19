@@ -1,0 +1,1 @@
+java -cp ./Java/repository/hsqldb/hsqldb/1.8.0.10/hsqldb-1.8.0.10.jar org.hsqldb.Server -database.0 file:src/database/hsqlDb -dbname.0 hsqldb

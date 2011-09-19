@@ -1,0 +1,172 @@
+
+package com.raj.test.console.main;
+
+import groovy.lang.Binding;
+
+import java.io.File;
+import java.net.URL;
+import java.util.Map;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.Parser;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.log4j.Logger;
+import org.codehaus.groovy.tools.shell.Groovysh;
+import org.codehaus.groovy.tools.shell.IO;
+import org.codehaus.groovy.tools.shell.util.NoExitSecurityManager;
+import org.fusesource.jansi.Ansi;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.security.context.SecurityContext;
+import org.springframework.security.context.SecurityContextHolder;
+
+import com.raj.test.infra.main.SpringServerMain;
+import com.raj.gm.marketrisk.platform.service.configuration.SystemAuthenticationDecorator;
+
+/**
+ * Groovy-based interactive console for Spring-based Coherence servers. Provides all top-level Spring beans as variables.
+ * 
+ * Examples:
+ * 
+ * riskSubmissionDao.getAll().each { println it }
+ * 
+ * cacheDumpTool.dumpCacheToTextFile("RiskSubmission", "./")
+ * 
+ * signOffBooks = { canSignOff = { workflow -> workflow.isEventValidForCurrentNode("SignedOff") } signOff = { workflow ->
+ * workflowService.fireEvent("SignedOff", workflow) } workflowService.getWorkflowEntities("bookWorkflow").findAll { canSignOff(it)
+ * }.each { signOff(it) } }
+ * 
+ * With project-console.conf loaded:
+ * 
+ * cache("RiskSubmission").findAll { "${it}".contains("ALI") }
+ * 
+ */
+public final class SpringServerConsole {
+
+    // config search locations
+    private static final String[] project_CONSOLE_CONF = { "project-console.conf", "etc/project-console.conf",
+                    "conf/console/project-console.conf", "../platform-install/etc/project-console.conf" };
+
+    public static final String project_CONSOLE_USER = "project-CONSOLE";
+
+    public static final String project_CONSOLE_ADMIN = "ADMIN";
+
+    private static final Logger LOGGER = Logger.getLogger(SpringServerConsole.class);
+
+    private SpringServerConsole() {
+    }
+
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        // should really pass this in
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+                        new String[] { "/application-context-console.xml" });
+
+        String user = getUser(args).trim();
+        LOGGER.info("Running Groovy Console for user type: " + user);
+        SecurityContext context = SecurityContextHolder.getContext();
+        SystemAuthenticationDecorator systemAuthentication = (SystemAuthenticationDecorator) applicationContext
+                        .getBean("systemAuthenticationDecorator");
+        systemAuthentication.initializeSystemAuthentication(user);
+        context.setAuthentication(systemAuthentication);
+        args = removeUserDetails(args, user);
+        // add Spring singleton beans to Groovy binding context
+        Binding binding = new Binding();
+        Map<String, Object> beans = applicationContext.getBeansOfType(Object.class, false, false);
+        for (String beanName : beans.keySet()) {
+            binding.setVariable(beanName, beans.get(beanName));
+        }
+        binding.setVariable("applicationContext", applicationContext);
+
+        IO io = new IO(System.in, System.out, System.err);
+        org.codehaus.groovy.tools.shell.util.Logger.io = io;
+
+        String terminal = System.getProperty("jline.terminal");
+        if ("jline.UnsupportedTerminal".equals(terminal)) {
+            Ansi.setEnabled(false);
+        }
+        if (terminal != null) {
+            System.out.println("\nTerminal type set to " + terminal);
+        }
+
+        Groovysh shell = new Groovysh(binding, io);
+
+        SecurityManager psm = System.getSecurityManager();
+        System.setSecurityManager(new NoExitSecurityManager());
+
+        int code = 0;
+        try {
+            load(shell);
+            code = shell.run(args);
+        } catch (Throwable t) {
+            t.printStackTrace();
+        } finally {
+            System.setSecurityManager(psm);
+        }
+
+        System.exit(code);
+    }
+
+    /**
+     * Removes the user details as they are not required to be passed to Groovy Shell.
+     * 
+     * @param args
+     * @param user
+     * @return
+     */
+    private static String[] removeUserDetails(String[] args, String user) {
+        args = (String[]) ArrayUtils.removeElement(args, "-u");
+        args = (String[]) ArrayUtils.removeElement(args, user);
+        return args;
+    }
+
+    private static String getUser(String[] args) {
+        Options options = getCLIOptions();
+        Parser cliParser = new PosixParser();
+        String user = project_CONSOLE_USER;
+        try {
+            CommandLine cli = cliParser.parse(options, args);
+            if (cli.hasOption('u')) {
+                user = cli.getOptionValue('u');
+            }
+        } catch (ParseException e) {
+            LOGGER.warn("Error parsing arguments: " + e.getMessage());
+            new HelpFormatter().printHelp(SpringServerMain.class.getSimpleName(), options);
+        }
+        return user;
+    }
+
+    private static Options getCLIOptions() {
+        Options opts = new Options();
+        Option opt = new Option("u", "The user type. Default: 'GUEST'");
+        opt.setArgs(1);
+        opt.setRequired(false);
+        opt.setLongOpt("user");
+        return opts.addOption(opt);
+    }
+
+    private static void load(Groovysh shell) {
+        URL url = SpringServerConsole.class.getResource("/project-console.conf");
+        if (url != null) {
+            System.out.println("Found config resource at " + url);
+            shell.execute("load " + url.toString());
+            return;
+        }
+        // Malcolm Sparks: This section is deprecated. It only exists during the
+        // transition to the resource path approach above.
+        for (String config : project_CONSOLE_CONF) {
+            if (new File(config).canRead()) {
+                System.out.println("Found config at " + config);
+                shell.execute("load " + config);
+                return;
+            }
+        }
+    }
+}

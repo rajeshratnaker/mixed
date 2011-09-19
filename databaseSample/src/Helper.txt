@@ -1,0 +1,9 @@
+1) WriteAsidePersister using HibernateDaoSupport, getHibernateTemplate().executeWithNewSession(HibernateCallback)
+
+2) writing to DB using jdbcTemplate.update( PreparedStatementCreatorFactory.newPreparedStatementCreator(Array), keyHolder);
+
+3) batch update using BatchPreparedStatementSetterImpl and jdbcTemplate.batchUpdate
+
+4) BatchPreparedStatementSetter implements using StatementCreatorUtils.setParameterValue().
+
+5)

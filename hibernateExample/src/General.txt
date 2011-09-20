@@ -33,6 +33,21 @@ new EqualsBuilder().append(this.a, other.a).isEquals()
 
 ----
 
+Linux help:
+find . -name *.java | xargs grep "mysearch" | tee
+top
+free
+jvisualvm
+eclipse
+sql developer
+gitk --all
+git gui
+git checkout -b branch_name
+kwrite
+git mergetool --tool kdiff3
+
+
+
 @Controller
 public class RequestController {
 

@@ -75,3 +75,10 @@ public class RequestController {
                                            @PathVariable Integer eventId) {
 -----
 
+IntelliJ
+
+1) Find usages( method/class/interface/field): alt+F7
+2) Actual method/interface: ctrl+b
+3) Who implements: ctrl+F7
+4) alt+enter -> suggestions
+5) ctrl+F9 to run java application
